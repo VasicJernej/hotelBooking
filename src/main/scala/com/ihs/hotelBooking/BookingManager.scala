@@ -17,6 +17,11 @@ trait BookingManager {
   def addBooking(guest: String, room: Int, date: Date): Unit
 
   /**
+   * Return a list of all the available room numbers for the given date
+   */
+  def getAvailableRooms(date: Date): Seq[Integer]
+
+  /**
    * Description of a booking for a room
    */
   case class Booking(roomNumber: Int, guest: String, date: Date)
@@ -56,6 +61,13 @@ class BookingRooms extends BookingManager {
       }
     }
   }
+
+  def getAvailableRooms(date: Date): Seq[Integer] = {
+    rooms.values.collect {
+      case x if x.isDefined => x.get.head.roomNumber.asInstanceOf[Integer]
+    }.toSeq
+  }
+
 }
 
 object BookingRooms {

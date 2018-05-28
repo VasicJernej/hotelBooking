@@ -14,7 +14,6 @@ class BookingManagerTest extends FunSuite with BeforeAndAfter {
     br = new BookingRooms
   }
   test("check for room availability with no reservation present") {
-
     assert(br.isRoomAvailable(room, today) == true)
   }
 
@@ -26,5 +25,10 @@ class BookingManagerTest extends FunSuite with BeforeAndAfter {
   test("can't book if booking for the date exists") {
     br.addBooking("dummy", room, today)
     assertThrows[BookingRooms.InsertException](br.addBooking("dummy", room, today))
+  }
+
+  test("booking removes a date from the list of availables") {
+    br.addBooking("dummy", room, today)
+    assert(br.rooms.size > br.getAvailableRooms(today).size)
   }
 }
