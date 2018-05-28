@@ -1,7 +1,6 @@
 package com.ihs.hotelBooking
 
 import org.scalatest._
-import org.scalamock.scalatest._
 
 import java.text.SimpleDateFormat
 
