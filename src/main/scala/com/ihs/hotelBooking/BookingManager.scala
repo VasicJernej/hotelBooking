@@ -1,6 +1,6 @@
 package com.ihs.hotelBooking
 
-import scala.collection.mutable.{ Map => MMap }
+import scala.collection.concurrent.{ TrieMap => MMap }
 
 import java.util.Date
 
@@ -44,24 +44,28 @@ class BookingRooms extends BookingManager {
     !rooms.getOrElse(room, None).getOrElse(List()).find(_.date == date).isDefined
   }
 
+  /**
+   * There are multiple ways to do concurrency with a mutable state, none of which
+   * is great. Here I am using the current supported data structure.
+   */
   def addBooking(guest: String, room: Int, date: Date): Unit = {
-    rooms(room).synchronized {
-      if (isRoomAvailable(room, date)) {
-        this.rooms(room) = this.rooms(room) match {
-          case None => Some(List(Booking(room, guest, date)))
-          case x => x map {
-            s: List[Booking] => {
-              s.++(List(Booking(room, guest, date)))
-            }
+    if (isRoomAvailable(room, date)) {
+      val booking = rooms(room) match {
+        case None => Some(List(Booking(room, guest, date)))
+        case x => x map {
+          s: List[Booking] => {
+            s.++(List(Booking(room, guest, date)))
           }
         }
-        println(s"room $room is booked for you.")
-      } else {
-        throw new BookingRooms.InsertException(message = s"room $room is already booked")
       }
+      rooms.put(room, booking) match {
+        case None => println(s"Something went wrong when booking room $room")
+        case Some(_) => println(s"room $room is booked for you.")
+      }
+    } else {
+      throw new BookingRooms.InsertException(message = s"room $room is already booked")
     }
   }
-
   def getAvailableRooms(date: Date): Seq[Integer] = {
     rooms.collect {
       case x if !x._2.isDefined => x._1
