@@ -45,7 +45,7 @@ class BookingRooms extends BookingManager {
   }
 
   def addBooking(guest: String, room: Int, date: Date): Unit = {
-    rooms.synchronized {
+    rooms(room).synchronized {
       if (isRoomAvailable(room, date)) {
         this.rooms(room) = this.rooms(room) match {
           case None => Some(List(Booking(room, guest, date)))
@@ -63,9 +63,10 @@ class BookingRooms extends BookingManager {
   }
 
   def getAvailableRooms(date: Date): Seq[Integer] = {
-    rooms.values.collect {
-      case x if x.isDefined => x.get.head.roomNumber.asInstanceOf[Integer]
-    }.toSeq
+    rooms.collect {
+      case x if !x._2.isDefined => x._1
+      case x if (x._2.get.filter { _.date == date }.isEmpty) => x._1
+    }.asInstanceOf[Seq[Integer]]
   }
 
 }
